@@ -5,6 +5,7 @@ import type { Inquiry, InquiryPhase } from '@/types';
 import { PHASE_ORDER, PHASE_CONFIG, INQUIRY_PHASES } from '@/types';
 import { getInquiriesByPhase } from '@/lib';
 import { KanbanColumn } from './KanbanColumn';
+import { DetailModal } from './DetailModal';
 
 interface KanbanBoardProps {
   inquiries: Inquiry[];
@@ -70,26 +71,12 @@ export function KanbanBoard({ inquiries }: KanbanBoardProps) {
         ))}
       </div>
 
-      {/* TODO: Detail modal will go here */}
       {selectedInquiry && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end md:items-center justify-center">
-          <div className="bg-white w-full md:max-w-lg md:rounded-lg max-h-[80vh] overflow-y-auto">
-            <div className="p-4 border-b flex justify-between items-center">
-              <h2 className="font-semibold">{selectedInquiry.clientName}</h2>
-              <button
-                onClick={() => setSelectedInquiry(null)}
-                className="p-2 hover:bg-slate-100 rounded-lg"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="p-4">
-              <p className="text-sm text-slate-600">
-                Detail panel coming next...
-              </p>
-            </div>
-          </div>
-        </div>
+        <DetailModal
+          inquiry={selectedInquiry}
+          isOpen={true}
+          onClose={() => setSelectedInquiry(null)}
+        />
       )}
     </div>
   );
