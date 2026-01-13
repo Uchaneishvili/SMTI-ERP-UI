@@ -3,11 +3,14 @@
 import { useState } from 'react';
 import type { Inquiry, InquiryPhase } from '@/types';
 import { PHASE_ORDER, PHASE_CONFIG, INQUIRY_PHASES } from '@/types';
-import { MOCK_INQUIRIES, getInquiriesByPhase } from '@/lib';
+import { getInquiriesByPhase } from '@/lib';
 import { KanbanColumn } from './KanbanColumn';
 
-export function KanbanBoard() {
-  const [inquiries] = useState<Inquiry[]>([...MOCK_INQUIRIES]);
+interface KanbanBoardProps {
+  inquiries: Inquiry[];
+}
+
+export function KanbanBoard({ inquiries }: KanbanBoardProps) {
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
   const [activePhase, setActivePhase] = useState<InquiryPhase | null>(null);
 
