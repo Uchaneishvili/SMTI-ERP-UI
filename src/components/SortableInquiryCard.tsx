@@ -40,7 +40,6 @@ export function SortableInquiryCard({
       style={style}
       {...attributes}
       {...listeners}
-      // Combine onClick with drag listeners correctly by ensuring we don't block clicks
       className="touch-none"
     >
       <InquiryCard inquiry={inquiry} onClick={onClick} />

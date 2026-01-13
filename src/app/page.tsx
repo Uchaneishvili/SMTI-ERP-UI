@@ -65,7 +65,7 @@ export default function Home() {
       const res = await fetch(`/api/inquiries/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phase: newPhase }),
+        body: JSON.stringify({ phase: newPhase, order: newOrder }),
       });
 
       if (!res.ok) {
@@ -73,9 +73,6 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Failed to move inquiry:', error);
-      // Revert optimization on error (simplified for now, ideally fetching fresh data)
-      // For a real app, we'd keep prev state ref or re-fetch.
-      // fetchInquiries();
     }
   };
 
