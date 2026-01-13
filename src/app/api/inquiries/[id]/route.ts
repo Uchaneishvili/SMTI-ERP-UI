@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { MOCK_INQUIRIES } from '@/lib';
+import { db } from '@/lib/db';
 
 export async function PATCH(
   request: Request,
@@ -8,22 +8,13 @@ export async function PATCH(
   const { id } = await params;
   const body = await request.json();
 
-  // Simulate network delay
   await new Promise((resolve) => setTimeout(resolve, 500));
 
-  // In a real app, I would update the DB here.
-  // For this mock, I just return the updated inquiry as if it succeeded.
-  const inquiry = MOCK_INQUIRIES.find((i) => i.id === id);
+  const updatedInquiry = await db.update(id, body);
 
-  if (!inquiry) {
+  if (!updatedInquiry) {
     return NextResponse.json({ error: 'Inquiry not found' }, { status: 404 });
   }
-
-  const updatedInquiry = {
-    ...inquiry,
-    ...body,
-    updatedAt: new Date().toISOString(),
-  };
 
   return NextResponse.json(updatedInquiry);
 }

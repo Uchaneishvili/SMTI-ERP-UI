@@ -57,7 +57,12 @@ export default function Home() {
     setInquiries((prev) =>
       prev.map((inq) =>
         inq.id === id
-          ? { ...inq, phase: newPhase, updatedAt: new Date().toISOString() }
+          ? {
+              ...inq,
+              phase: newPhase,
+              order: newOrder,
+              updatedAt: new Date().toISOString(),
+            }
           : inq,
       ),
     );
