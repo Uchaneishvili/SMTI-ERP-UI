@@ -4,31 +4,36 @@ import { useState, useMemo, useEffect } from 'react';
 import { KanbanBoard, Header, FilterPanel, Loading } from '@/components';
 import { filterInquiries } from '@/lib';
 import { useDebounce } from '@/hooks';
-import type { Inquiry, InquiryFilters, InquiryPhase } from '@/types';
-import { toast } from 'sonner';
+import type { InquiryFilters, InquiryPhase } from '@/types';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useInquiryStore } from '@/store/useInquiryStore';
 
 export default function Home() {
-  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Use Zustand Store for Data & Actions
+  const { inquiries, isLoading, fetchInquiries, moveInquiry } =
+    useInquiryStore();
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [filters, setFilters] = useState<InquiryFilters>({});
 
+  // Derive initial filters from URL
+  const filters: InquiryFilters = useMemo(() => {
+    return {
+      clientName: searchParams.get('clientName') || undefined,
+      minValue: searchParams.get('minValue')
+        ? Number(searchParams.get('minValue'))
+        : undefined,
+      dateFrom: searchParams.get('dateFrom') || undefined,
+      dateTo: searchParams.get('dateTo') || undefined,
+    };
+  }, [searchParams]);
+
+  // Initial Fetch
   useEffect(() => {
-    async function fetchInquiries() {
-      try {
-        const res = await fetch('/api/inquiries');
-        if (!res.ok) throw new Error('Failed to fetch');
-        const data = await res.json();
-        setInquiries(data);
-      } catch (error) {
-        console.error('Error fetching inquiries:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
     fetchInquiries();
-  }, []);
+  }, [fetchInquiries]);
 
   const debouncedFilters = useDebounce(filters, 300);
 
@@ -40,47 +45,37 @@ export default function Home() {
     return filterInquiries(inquiries, debouncedFilters);
   }, [inquiries, debouncedFilters]);
 
+  const updateFilters = (newFilters: Partial<InquiryFilters>) => {
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+
+    Object.entries(newFilters).forEach(([key, value]) => {
+      if (value === undefined || value === '') {
+        current.delete(key);
+      } else {
+        current.set(key, String(value));
+      }
+    });
+
+    const search = current.toString();
+    const query = search ? `?${search}` : '';
+
+    router.replace(`${window.location.pathname}${query}`, { scroll: false });
+  };
+
   const handleFilterChange = (newFilters: Partial<InquiryFilters>) => {
-    setFilters((prev) => ({ ...prev, ...newFilters }));
+    updateFilters(newFilters);
   };
 
   const handleClearFilters = () => {
-    setFilters({});
+    router.replace(window.location.pathname, { scroll: false });
   };
 
-  const handleInquiryMove = async (
+  const handleInquiryMove = (
     id: string,
     newPhase: InquiryPhase,
     newOrder: number,
   ) => {
-    // Optimistic update
-    setInquiries((prev) =>
-      prev.map((inq) =>
-        inq.id === id
-          ? {
-              ...inq,
-              phase: newPhase,
-              order: newOrder,
-              updatedAt: new Date().toISOString(),
-            }
-          : inq,
-      ),
-    );
-
-    try {
-      const res = await fetch(`/api/inquiries/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phase: newPhase, order: newOrder }),
-      });
-
-      if (!res.ok) {
-        throw new Error('Failed to update inquiry');
-      }
-    } catch (error) {
-      console.error('Failed to move inquiry:', error);
-      toast.error('Failed to update inquiry');
-    }
+    moveInquiry(id, newPhase, newOrder);
   };
 
   return (
