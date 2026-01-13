@@ -33,7 +33,7 @@ export function KanbanColumn<T extends { id: string }>({
   });
 
   return (
-    <section className="flex flex-col rounded-xl bg-slate-100/80 min-h-[200px] w-80 flex-shrink-0 h-full">
+    <section className="flex flex-col rounded-xl bg-slate-100/80 min-h-[200px] w-80 flex-shrink-0 md:w-auto md:flex-shrink h-full">
       <header
         className={cn(
           'sticky top-0 z-10 rounded-t-xl border-b-2 bg-white/90 backdrop-blur-sm px-3 py-2',

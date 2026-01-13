@@ -71,7 +71,12 @@ export function GenericKanbanBoard<T extends { id: string }>({
       onDragOver={handleDragOver}
       onDragEnd={onDragEnd}
     >
-      <div className="flex gap-4 h-full overflow-x-auto p-4">
+      <div
+        className="flex gap-4 h-full overflow-x-auto p-4 md:grid md:overflow-hidden"
+        style={{
+          gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))`,
+        }}
+      >
         {columns.map((col) => (
           <KanbanColumn
             key={col.id}
