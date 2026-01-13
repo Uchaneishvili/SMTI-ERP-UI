@@ -5,6 +5,7 @@ import { KanbanBoard, Header, FilterPanel, Loading } from '@/components';
 import { filterInquiries } from '@/lib';
 import { useDebounce } from '@/hooks';
 import type { Inquiry, InquiryFilters, InquiryPhase } from '@/types';
+import { toast } from 'sonner';
 
 export default function Home() {
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
@@ -73,6 +74,7 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Failed to move inquiry:', error);
+      toast.error('Failed to update inquiry');
     }
   };
 
