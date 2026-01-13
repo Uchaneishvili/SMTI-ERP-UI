@@ -9,100 +9,53 @@ import {
   useSensors,
   PointerSensor,
   DragOverlay,
-  defaultDropAnimationSideEffects,
-  DragStartEvent,
-  DragOverEvent,
-  DragEndEvent,
-  DropAnimation,
 } from '@dnd-kit/core';
 import type { Inquiry, InquiryPhase } from '@/types';
 import { PHASE_ORDER, PHASE_CONFIG, INQUIRY_PHASES } from '@/types';
-import { getInquiriesByPhase } from '@/lib';
 import { KanbanColumn } from './KanbanColumn';
 import { DetailModal } from './DetailModal';
 import { InquiryCard } from './InquiryCard';
+import { useInquiryBoard, dropAnimation } from '@/hooks';
 
 interface KanbanBoardProps {
   inquiries: Inquiry[];
-  onInquiryMove?: (id: string, newPhase: InquiryPhase) => void;
+  onInquiryMove?: (
+    id: string,
+    newPhase: InquiryPhase,
+    newOrder: number,
+  ) => void;
 }
 
-const dropAnimation: DropAnimation = {
-  sideEffects: defaultDropAnimationSideEffects({
-    styles: {
-      active: {
-        opacity: '0.5',
-      },
-    },
-  }),
-};
-
-export function KanbanBoard({ inquiries, onInquiryMove }: KanbanBoardProps) {
+export function KanbanBoard({
+  inquiries: initialInquiries,
+  onInquiryMove,
+}: KanbanBoardProps) {
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
   const [activePhase, setActivePhase] = useState<InquiryPhase | null>(null);
-  const [activeId, setActiveId] = useState<string | null>(null);
 
-  const inquiriesByPhase = getInquiriesByPhase(inquiries);
+  const {
+    inquiriesByPhase,
+    activeInquiry,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+  } = useInquiryBoard(initialInquiries);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // Require 8px movement before drag starts (prevents accidental clicks)
+        distance: 8,
       },
     }),
   );
-
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (!over) {
-      setActiveId(null);
-      return;
-    }
-
-    const activeInquiryId = active.id as string;
-    // The over.id will be the column ID (phase) because we set droppable id to phase
-    // OR it could be another card ID if we sort over a card.
-    // BUT we need to find the phase of the over container.
-
-    // Check if dropping on a column directly
-    let newPhase: InquiryPhase | undefined = undefined;
-
-    // If over.id is a phase name
-    if (Object.values(INQUIRY_PHASES).includes(over.id as InquiryPhase)) {
-      newPhase = over.id as InquiryPhase;
-    } else {
-      // Dropped over a card, find that card's phase
-      const overCardId = over.id as string;
-      const overCard = inquiries.find((i) => i.id === overCardId);
-      if (overCard) {
-        newPhase = overCard.phase;
-      }
-    }
-
-    const currentCard = inquiries.find((i) => i.id === activeInquiryId);
-
-    if (currentCard && newPhase && currentCard.phase !== newPhase) {
-      onInquiryMove?.(activeInquiryId, newPhase);
-    }
-
-    setActiveId(null);
-  };
-
-  const activeInquiry = activeId
-    ? inquiries.find((i) => i.id === activeId)
-    : null;
 
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCorners}
       onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
+      onDragOver={handleDragOver}
+      onDragEnd={(event) => handleDragEnd(event, onInquiryMove)}
     >
       <div className="flex flex-col h-full">
         {/* Mobile: Tabs for phases */}
@@ -131,9 +84,7 @@ export function KanbanBoard({ inquiries, onInquiryMove }: KanbanBoardProps) {
           })}
         </div>
 
-        {/* Mobile: Single column view (Drop disabled for now on mobile tab view for simplicity or enable per column) */}
-        {/* Note: DnD is tricky with tabs. We usually disable DnD on mobile or allow dragging to tabs (complex).
-            For now, we'll render the active column. Dragging within the column works. */}
+        {/* Mobile: Single column view */}
         <div className="md:hidden flex-1 overflow-y-auto p-4">
           {(() => {
             const phase = activePhase || INQUIRY_PHASES.NEW;

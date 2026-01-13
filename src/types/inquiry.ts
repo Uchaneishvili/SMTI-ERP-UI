@@ -27,6 +27,7 @@ export interface Inquiry extends BaseEntity {
   readonly phase: InquiryPhase;
   readonly hotels: readonly string[];
   readonly notes: string;
+  readonly order: number;
 }
 
 export const HIGH_VALUE_THRESHOLD = 50000;

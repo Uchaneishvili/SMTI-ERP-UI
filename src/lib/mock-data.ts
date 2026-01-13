@@ -22,6 +22,7 @@ export const MOCK_INQUIRIES: readonly Inquiry[] = [
     notes: 'Client prefers city center location, needs AV equipment',
     createdAt: '2026-01-10T09:00:00Z',
     updatedAt: '2026-01-10T09:00:00Z',
+    order: 0,
   },
   {
     id: generateId('INQ', 2),
@@ -36,6 +37,7 @@ export const MOCK_INQUIRIES: readonly Inquiry[] = [
     notes: 'Annual team building event, outdoor activities preferred',
     createdAt: '2026-01-11T14:30:00Z',
     updatedAt: '2026-01-11T14:30:00Z',
+    order: 1,
   },
   {
     id: generateId('INQ', 3),
@@ -50,6 +52,7 @@ export const MOCK_INQUIRIES: readonly Inquiry[] = [
     notes: 'Executive leadership summit, premium venue required',
     createdAt: '2026-01-12T10:15:00Z',
     updatedAt: '2026-01-12T10:15:00Z',
+    order: 2,
   },
   {
     id: generateId('INQ', 4),
@@ -64,6 +67,7 @@ export const MOCK_INQUIRIES: readonly Inquiry[] = [
     notes: 'Quarterly strategy meeting, breakout rooms needed',
     createdAt: '2026-01-05T11:00:00Z',
     updatedAt: '2026-01-09T16:45:00Z',
+    order: 0,
   },
   {
     id: generateId('INQ', 5),
@@ -78,6 +82,7 @@ export const MOCK_INQUIRIES: readonly Inquiry[] = [
     notes: 'Product launch event, exhibition space minimum 500m²',
     createdAt: '2026-01-04T09:30:00Z',
     updatedAt: '2026-01-08T14:20:00Z',
+    order: 1,
   },
   {
     id: generateId('INQ', 6),
@@ -92,6 +97,7 @@ export const MOCK_INQUIRIES: readonly Inquiry[] = [
     notes: 'Board dinner, private dining room required',
     createdAt: '2026-01-06T13:45:00Z',
     updatedAt: '2026-01-10T11:30:00Z',
+    order: 2,
   },
   {
     id: generateId('INQ', 7),
@@ -106,6 +112,7 @@ export const MOCK_INQUIRIES: readonly Inquiry[] = [
     notes: 'Global marketing summit, simultaneous translation needed',
     createdAt: '2026-01-02T10:00:00Z',
     updatedAt: '2026-01-12T14:30:00Z',
+    order: 0,
   },
   {
     id: generateId('INQ', 8),
@@ -120,6 +127,7 @@ export const MOCK_INQUIRIES: readonly Inquiry[] = [
     notes: 'Engineering workshop, technical setup required',
     createdAt: '2026-01-03T15:20:00Z',
     updatedAt: '2026-01-11T09:15:00Z',
+    order: 1,
   },
   {
     id: generateId('INQ', 9),
@@ -134,6 +142,7 @@ export const MOCK_INQUIRIES: readonly Inquiry[] = [
     notes: 'Annual conference, successfully booked at Baur au Lac',
     createdAt: '2025-12-15T08:30:00Z',
     updatedAt: '2026-01-08T17:00:00Z',
+    order: 0,
   },
   {
     id: generateId('INQ', 10),
@@ -148,6 +157,7 @@ export const MOCK_INQUIRIES: readonly Inquiry[] = [
     notes: 'Client appreciation dinner, completed successfully',
     createdAt: '2025-12-20T14:00:00Z',
     updatedAt: '2026-01-05T10:45:00Z',
+    order: 1,
   },
   {
     id: generateId('INQ', 11),
@@ -162,6 +172,7 @@ export const MOCK_INQUIRIES: readonly Inquiry[] = [
     notes: 'Executive wedding celebration, premium package',
     createdAt: '2025-11-10T11:00:00Z',
     updatedAt: '2026-01-02T16:30:00Z',
+    order: 2,
   },
 ] as const;
 
@@ -176,7 +187,14 @@ export const getInquiriesByPhase = (
   };
 
   for (const inquiry of inquiries) {
-    grouped[inquiry.phase].push(inquiry);
+    if (grouped[inquiry.phase]) {
+      grouped[inquiry.phase].push(inquiry);
+    }
+  }
+
+  // Sort by order
+  for (const phase of Object.keys(grouped)) {
+    grouped[phase as InquiryPhase].sort((a, b) => a.order - b.order);
   }
 
   return grouped;

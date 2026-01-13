@@ -47,7 +47,11 @@ export default function Home() {
     setFilters({});
   };
 
-  const handleInquiryMove = async (id: string, newPhase: InquiryPhase) => {
+  const handleInquiryMove = async (
+    id: string,
+    newPhase: InquiryPhase,
+    newOrder: number,
+  ) => {
     // Optimistic update
     setInquiries((prev) =>
       prev.map((inq) =>
