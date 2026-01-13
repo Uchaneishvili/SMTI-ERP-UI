@@ -1,8 +1,9 @@
 export { InquiryCard } from './InquiryCard';
-export { SortableInquiryCard } from './SortableInquiryCard';
-export { KanbanColumn } from './KanbanColumn';
-export { KanbanBoard } from './KanbanBoard';
+export { GenericKanbanBoard } from './kanban/GenericKanbanBoard';
 export { Header } from './Header';
-export { FilterPanel } from './FilterPanel';
+export {
+  GenericFilterPanel,
+  type FilterFieldConfig,
+} from './GenericFilterPanel';
 export { DetailModal } from './DetailModal';
 export { Loading } from './Loading';

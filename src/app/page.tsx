@@ -1,24 +1,63 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { KanbanBoard, Header, FilterPanel, Loading } from '@/components';
+import {
+  Header,
+  Loading,
+  InquiryCard,
+  DetailModal,
+  GenericFilterPanel,
+  FilterFieldConfig,
+} from '@/components';
+import { GenericKanbanBoard } from '@/components/kanban/GenericKanbanBoard';
 import { filterInquiries } from '@/lib';
 import { useDebounce } from '@/hooks';
-import type { InquiryFilters, InquiryPhase } from '@/types';
+import {
+  Inquiry,
+  InquiryFilters,
+  InquiryPhase,
+  PHASE_CONFIG,
+  PHASE_ORDER,
+} from '@/types';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useInquiryStore } from '@/store/useInquiryStore';
+import { Search, DollarSign } from 'lucide-react';
+
+const FILTER_CONFIG: FilterFieldConfig[] = [
+  {
+    key: 'clientName',
+    label: 'Search Client',
+    type: 'text',
+    placeholder: 'Filter by name...',
+    icon: Search,
+  },
+  {
+    key: 'minValue',
+    label: 'Min Value (CHF)',
+    type: 'number',
+    placeholder: '0',
+    min: 0,
+    step: 1000,
+    icon: DollarSign,
+  },
+  {
+    key: 'dateRange',
+    label: 'Event Date Range',
+    type: 'date-range',
+    rangeKeys: ['dateFrom', 'dateTo'],
+  },
+];
 
 export default function Home() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Use Zustand Store for Data & Actions
   const { inquiries, isLoading, fetchInquiries, moveInquiry } =
     useInquiryStore();
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
 
-  // Derive initial filters from URL
   const filters: InquiryFilters = useMemo(() => {
     return {
       clientName: searchParams.get('clientName') || undefined,
@@ -30,7 +69,6 @@ export default function Home() {
     };
   }, [searchParams]);
 
-  // Initial Fetch
   useEffect(() => {
     fetchInquiries();
   }, [fetchInquiries]);
@@ -72,11 +110,21 @@ export default function Home() {
 
   const handleInquiryMove = (
     id: string,
-    newPhase: InquiryPhase,
-    newOrder: number,
+    newColumnId: string,
+    newIndex: number,
   ) => {
-    moveInquiry(id, newPhase, newOrder);
+    moveInquiry(id, newColumnId as InquiryPhase, newIndex);
   };
+
+  const columns = useMemo(
+    () =>
+      PHASE_ORDER.map((phase) => ({
+        id: PHASE_CONFIG[phase].id,
+        title: PHASE_CONFIG[phase].label,
+        color: PHASE_CONFIG[phase].color,
+      })),
+    [],
+  );
 
   return (
     <div className="flex flex-col h-screen bg-slate-50">
@@ -85,23 +133,43 @@ export default function Home() {
         filterCount={activeFilterCount}
       />
 
-      <FilterPanel
+      <GenericFilterPanel
         isOpen={isFilterOpen}
-        filters={filters}
+        values={filters}
+        fields={FILTER_CONFIG}
         onFilterChange={handleFilterChange}
-        onClearFilters={handleClearFilters}
+        onClear={handleClearFilters}
       />
 
       <main className="flex-1 overflow-hidden">
         {isLoading ? (
           <Loading />
         ) : (
-          <KanbanBoard
-            inquiries={filteredInquiries}
-            onInquiryMove={handleInquiryMove}
+          <GenericKanbanBoard<Inquiry>
+            items={filteredInquiries}
+            columns={columns}
+            groupByKey="phase"
+            onItemMove={handleInquiryMove}
+            onCardClick={setSelectedInquiry}
+            renderCard={(inquiry) => <InquiryCard inquiry={inquiry} />}
           />
         )}
       </main>
+
+      {selectedInquiry && (
+        <DetailModal
+          inquiry={selectedInquiry}
+          isOpen={true}
+          onClose={() => setSelectedInquiry(null)}
+          onPhaseChange={(newPhase) => {
+            const targetCount = inquiries.filter(
+              (i) => i.phase === newPhase,
+            ).length;
+            handleInquiryMove(selectedInquiry.id, newPhase, targetCount); // Append by default
+            setSelectedInquiry({ ...selectedInquiry, phase: newPhase });
+          }}
+        />
+      )}
     </div>
   );
 }

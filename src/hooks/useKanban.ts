@@ -6,10 +6,6 @@ import {
   defaultDropAnimationSideEffects,
   DropAnimation,
 } from '@dnd-kit/core';
-import { arrayMove } from '@dnd-kit/sortable';
-import type { Inquiry, InquiryPhase } from '@/types';
-import { INQUIRY_PHASES } from '@/types';
-import { getInquiriesByPhase } from '@/lib';
 
 export const dropAnimation: DropAnimation = {
   sideEffects: defaultDropAnimationSideEffects({
@@ -19,18 +15,32 @@ export const dropAnimation: DropAnimation = {
   }),
 };
 
-export function useInquiryBoard(initialInquiries: Inquiry[]) {
-  const [items, setItems] = useState<Record<InquiryPhase, Inquiry[]>>(() =>
-    getInquiriesByPhase(initialInquiries),
+export function useKanban<T extends { id: string }>(
+  initialItems: T[],
+  groupByKey: keyof T,
+  columns: { id: string }[],
+) {
+  const getGrouped = useCallback(
+    (itemsList: T[]) => {
+      const groups: Record<string, T[]> = {};
+      columns.forEach((col) => (groups[col.id] = []));
+      itemsList.forEach((item) => {
+        const key = String(item[groupByKey]);
+        if (groups[key]) groups[key].push(item);
+      });
+      return groups;
+    },
+    [columns, groupByKey],
   );
 
+  const [items, setItems] = useState<Record<string, T[]>>(() =>
+    getGrouped(initialItems),
+  );
   const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
-    setItems(getInquiriesByPhase(initialInquiries));
-  }, [initialInquiries]);
-
-  const flatInquiries = Object.values(items).flat();
+    setItems(getGrouped(initialItems));
+  }, [initialItems, getGrouped]);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -46,13 +56,11 @@ export function useInquiryBoard(initialInquiries: Inquiry[]) {
 
       if (activeId === overId) return;
 
-      const findContainer = (id: string): InquiryPhase | undefined => {
-        if (Object.values(INQUIRY_PHASES).includes(id as InquiryPhase)) {
-          return id as InquiryPhase;
-        }
+      const findContainer = (id: string) => {
+        if (columns.some((col) => col.id === id)) return id;
         return Object.keys(items).find((key) =>
-          items[key as InquiryPhase].find((i) => i.id === id),
-        ) as InquiryPhase | undefined;
+          items[key].some((i) => i.id === id),
+        );
       };
 
       const activeContainer = findContainer(activeId);
@@ -69,12 +77,11 @@ export function useInquiryBoard(initialInquiries: Inquiry[]) {
       setItems((prev) => {
         const activeItems = prev[activeContainer];
         const overItems = prev[overContainer];
-
         const activeIndex = activeItems.findIndex((i) => i.id === activeId);
         const overIndex = overItems.findIndex((i) => i.id === overId);
 
         let newIndex;
-        if (Object.values(INQUIRY_PHASES).includes(overId as InquiryPhase)) {
+        if (columns.some((col) => col.id === overId)) {
           newIndex = overItems.length + 1;
         } else {
           const isBelowOverItem =
@@ -95,31 +102,29 @@ export function useInquiryBoard(initialInquiries: Inquiry[]) {
           ],
           [overContainer]: [
             ...prev[overContainer].slice(0, newIndex),
-            { ...activeItems[activeIndex], phase: overContainer },
+            { ...activeItems[activeIndex], [groupByKey]: overContainer },
             ...prev[overContainer].slice(newIndex, prev[overContainer].length),
           ],
         };
       });
     },
-    [items],
+    [items, columns, groupByKey],
   );
 
   const handleDragEnd = useCallback(
     (
       event: DragEndEvent,
-      onSave?: (id: string, phase: InquiryPhase, order: number) => void,
+      onMove: (id: string, newColId: string, newIndex: number) => void,
     ) => {
       const { active, over } = event;
       const activeId = active.id as string;
       const overId = over ? (over.id as string) : null;
 
-      const findContainer = (id: string): InquiryPhase | undefined => {
-        if (Object.values(INQUIRY_PHASES).includes(id as InquiryPhase)) {
-          return id as InquiryPhase;
-        }
+      const findContainer = (id: string) => {
+        if (columns.some((col) => col.id === id)) return id;
         return Object.keys(items).find((key) =>
-          items[key as InquiryPhase].find((i) => i.id === id),
-        ) as InquiryPhase | undefined;
+          items[key].some((i) => i.id === id),
+        );
       };
 
       const activeContainer = findContainer(activeId);
@@ -138,44 +143,23 @@ export function useInquiryBoard(initialInquiries: Inquiry[]) {
         );
 
         if (activeIndex !== overIndex) {
-          setItems((prev) => ({
-            ...prev,
-            [activeContainer]: arrayMove(
-              prev[activeContainer],
-              activeIndex,
-              overIndex,
-            ),
-          }));
-
-          if (onSave) {
-            onSave(activeId, activeContainer, overIndex);
-          }
-        } else if (onSave && activeContainer && overContainer && activeId) {
+          onMove(activeId, activeContainer, overIndex);
         }
-      }
-
-      const finalContainer = findContainer(activeId);
-      if (finalContainer && onSave) {
-        const finalIndex = items[finalContainer].findIndex(
+      } else if (activeContainer && overContainer) {
+        const finalIndex = items[overContainer].findIndex(
           (i) => i.id === activeId,
         );
-        onSave(activeId, finalContainer, finalIndex);
+        onMove(activeId, overContainer, finalIndex);
       }
 
       setActiveId(null);
     },
-    [items],
+    [items, columns],
   );
 
-  const activeInquiry = activeId
-    ? flatInquiries.find((i) => i.id === activeId)
-    : null;
-
   return {
-    inquiries: flatInquiries,
-    inquiriesByPhase: items,
+    items,
     activeId,
-    activeInquiry,
     handleDragStart,
     handleDragOver,
     handleDragEnd,

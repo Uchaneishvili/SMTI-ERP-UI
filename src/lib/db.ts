@@ -1,38 +1,20 @@
-import { promises as fs } from 'fs';
-import path from 'path';
-import { MOCK_INQUIRIES } from './mock-data';
 import { Inquiry, InquiryPhase } from '@/types';
+import { MOCK_INQUIRIES } from './mock-data';
+import { FileRepository } from './FileRepository';
 
-const DB_PATH = path.join(process.cwd(), 'data', 'inquiries.json');
-
-interface DbSchema {
-  inquiries: Inquiry[];
-}
+const repo = new FileRepository<Inquiry>(
+  'inquiries.json',
+  MOCK_INQUIRIES as unknown as Inquiry[],
+  'inquiries',
+);
 
 export const db = {
-  async getAll(): Promise<Inquiry[]> {
-    try {
-      const data = await fs.readFile(DB_PATH, 'utf-8');
-      const parsed: DbSchema = JSON.parse(data);
-      return parsed.inquiries;
-    } catch (error) {
-      await this.save(MOCK_INQUIRIES as unknown as Inquiry[]);
-      return [...MOCK_INQUIRIES];
-    }
-  },
-
-  async getById(id: string): Promise<Inquiry | undefined> {
-    const inquiries = await this.getAll();
-    return inquiries.find((i) => i.id === id);
-  },
-
-  async save(inquiries: Inquiry[]): Promise<void> {
-    const data: DbSchema = { inquiries };
-    await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
-  },
+  getAll: () => repo.getAll(),
+  getById: (id: string) => repo.getById(id),
+  save: (items: Inquiry[]) => repo.save(items),
 
   async update(id: string, updates: Partial<Inquiry>): Promise<Inquiry | null> {
-    const inquiries = await this.getAll();
+    const inquiries = await repo.getAll();
     const index = inquiries.findIndex((i) => i.id === id);
 
     if (index === -1) return null;
@@ -61,7 +43,6 @@ export const db = {
       const otherItems = inquiries.filter((i) => i.id !== id);
 
       const phaseItems = otherItems.filter((i) => i.phase === targetPhase);
-
       phaseItems.sort((a, b) => a.order - b.order);
 
       const insertIndex = Math.max(0, Math.min(targetOrder, phaseItems.length));
@@ -76,12 +57,10 @@ export const db = {
       );
       const newInquiries = [...nonTargetItems, ...reorderedPhaseItems];
 
-      await this.save(newInquiries);
+      await repo.save(newInquiries);
       return reorderedPhaseItems.find((i) => i.id === id) || updatedInquiry;
     }
 
-    inquiries[index] = updatedInquiry;
-    await this.save(inquiries);
-    return updatedInquiry;
+    return repo.update(id, updates);
   },
 };

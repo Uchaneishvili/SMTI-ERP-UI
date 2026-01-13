@@ -7,6 +7,7 @@ export interface InquiryFilters {
   readonly dateTo?: string;
   readonly minValue?: number;
   readonly phase?: InquiryPhase;
+  readonly [key: string]: string | number | undefined;
 }
 
 export interface PaginatedResponse<T> {

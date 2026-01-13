@@ -1,2 +1,2 @@
 export { useDebounce } from './useDebounce';
-export { useInquiryBoard, dropAnimation } from './useInquiryBoard';
+export { useKanban, dropAnimation } from './useKanban';
