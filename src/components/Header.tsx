@@ -1,16 +1,22 @@
 import { LayoutGrid, Filter } from 'lucide-react';
-
+import { useRouter } from 'next/navigation';
 interface HeaderProps {
   onFilterClick?: () => void;
   filterCount?: number;
 }
 
 export function Header({ onFilterClick, filterCount = 0 }: HeaderProps) {
+  const router = useRouter();
   return (
     <header className="shrink-0 border-b bg-white">
       <div className="flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-900">
+          <div
+            className="flex cursor-pointer items-center justify-center w-8 h-8 rounded-lg bg-slate-900"
+            onClick={() => {
+              router.push('/');
+            }}
+          >
             <LayoutGrid className="text-white" size={18} />
           </div>
           <div>
