@@ -124,6 +124,12 @@ export function KanbanBoard({
             inquiry={selectedInquiry}
             isOpen={true}
             onClose={() => setSelectedInquiry(null)}
+            onPhaseChange={(newPhase) => {
+              const newOrder = inquiriesByPhase[newPhase].length;
+              onInquiryMove?.(selectedInquiry.id, newPhase, newOrder);
+
+              setSelectedInquiry({ ...selectedInquiry, phase: newPhase });
+            }}
           />
         )}
       </div>

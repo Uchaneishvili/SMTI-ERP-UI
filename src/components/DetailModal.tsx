@@ -7,8 +7,9 @@ import {
   Clock,
   MapPin,
   AlignLeft,
+  ChevronDown,
 } from 'lucide-react';
-import type { Inquiry } from '@/types';
+import type { Inquiry, InquiryPhase } from '@/types';
 import { PHASE_CONFIG } from '@/types';
 import { formatCurrency, formatDisplayDate, formatRelativeDate } from '@/lib';
 import { cn } from '@/lib';
@@ -17,9 +18,15 @@ interface DetailModalProps {
   inquiry: Inquiry;
   isOpen: boolean;
   onClose: () => void;
+  onPhaseChange?: (newPhase: InquiryPhase) => void;
 }
 
-export function DetailModal({ inquiry, isOpen, onClose }: DetailModalProps) {
+export function DetailModal({
+  inquiry,
+  isOpen,
+  onClose,
+  onPhaseChange,
+}: DetailModalProps) {
   if (!isOpen) return null;
 
   const phaseConfig = PHASE_CONFIG[inquiry.phase];
@@ -37,15 +44,28 @@ export function DetailModal({ inquiry, isOpen, onClose }: DetailModalProps) {
             <h2 className="text-xl font-semibold text-slate-900">
               {inquiry.clientName}
             </h2>
-            <span
-              className={cn(
-                'rounded-full px-2.5 py-0.5 text-xs font-medium',
-                phaseConfig.color.bg,
-                phaseConfig.color.text,
-              )}
-            >
-              {phaseConfig.label}
-            </span>
+            <div className="relative">
+              <select
+                value={inquiry.phase}
+                onChange={(e) =>
+                  onPhaseChange?.(e.target.value as InquiryPhase)
+                }
+                className={cn(
+                  'appearance-none rounded-full py-0.5 pl-2.5 pr-8 text-xs font-medium border-0 cursor-pointer focus:ring-2 focus:ring-offset-1 focus:ring-blue-500',
+                  phaseConfig.color.bg,
+                  phaseConfig.color.text,
+                )}
+              >
+                {Object.values(PHASE_CONFIG).map((config) => (
+                  <option key={config.id} value={config.id}>
+                    {config.label}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2">
+                <ChevronDown size={12} className="opacity-50" />
+              </div>
+            </div>
           </div>
           <button
             onClick={onClose}
