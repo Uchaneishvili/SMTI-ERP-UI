@@ -1,16 +1,21 @@
+'use client';
+
+import { useState } from 'react';
+import { KanbanBoard, Header } from '@/components';
+
 export default function Home() {
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
   return (
-    <main className="min-h-screen bg-neutral-100">
-      <header className="bg-white border-b border-neutral-200 px-6 py-4 shadow-sm">
-        <h1 className="text-2xl font-semibold text-neutral-900">
-          Inquiry Kanban Board
-        </h1>
-      </header>
-      <div className="p-6">
-        <p className="text-neutral-600">
-          Board content will be displayed here.
-        </p>
-      </div>
-    </main>
+    <div className="flex flex-col h-screen bg-slate-50">
+      <Header
+        onFilterClick={() => setIsFilterOpen(!isFilterOpen)}
+        filterCount={0}
+      />
+
+      <main className="flex-1 overflow-hidden">
+        <KanbanBoard />
+      </main>
+    </div>
   );
 }
