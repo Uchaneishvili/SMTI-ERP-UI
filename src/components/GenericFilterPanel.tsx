@@ -1,5 +1,6 @@
-import { X, Calendar, LucideIcon } from 'lucide-react';
+import { X, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib';
+import { DateRangePicker } from './ui/DateRangePicker';
 
 export type FilterType = 'text' | 'number' | 'date-range' | 'select';
 
@@ -94,41 +95,17 @@ export function GenericFilterPanel<T extends Record<string, unknown>>({
               )}
 
               {field.type === 'date-range' && field.rangeKeys && (
-                <div className="flex items-center gap-2">
-                  <div className="relative flex-1">
-                    <Calendar
-                      className="absolute left-2.5 top-2.5 text-slate-400"
-                      size={16}
-                    />
-                    <input
-                      type="date"
-                      value={(values[field.rangeKeys[0]] as string) || ''}
-                      onChange={(e) =>
-                        onFilterChange({
-                          [field.rangeKeys![0]]: e.target.value,
-                        } as Partial<T>)
-                      }
-                      className="w-full rounded-lg border-slate-200 bg-white py-2 pl-9 pr-3 text-sm placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
-                  </div>
-                  <span className="text-slate-400">-</span>
-                  <div className="relative flex-1">
-                    <Calendar
-                      className="absolute left-2.5 top-2.5 text-slate-400"
-                      size={16}
-                    />
-                    <input
-                      type="date"
-                      value={(values[field.rangeKeys[1]] as string) || ''}
-                      onChange={(e) =>
-                        onFilterChange({
-                          [field.rangeKeys![1]]: e.target.value,
-                        } as Partial<T>)
-                      }
-                      className="w-full rounded-lg border-slate-200 bg-white py-2 pl-9 pr-3 text-sm placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
+                <DateRangePicker
+                  dateFrom={values[field.rangeKeys[0]] as string | undefined}
+                  dateTo={values[field.rangeKeys[1]] as string | undefined}
+                  onSelect={(from, to) => {
+                    onFilterChange({
+                      [field.rangeKeys![0]]: from,
+                      [field.rangeKeys![1]]: to,
+                    } as unknown as Partial<T>);
+                  }}
+                  className="w-full"
+                />
               )}
             </div>
           </div>
