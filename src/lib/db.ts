@@ -8,12 +8,24 @@ const repo = new FileRepository<Inquiry>(
   'inquiries',
 );
 
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export const db = {
-  getAll: () => repo.getAll(),
-  getById: (id: string) => repo.getById(id),
-  save: (items: Inquiry[]) => repo.save(items),
+  getAll: async () => {
+    await delay(500);
+    return repo.getAll();
+  },
+  getById: async (id: string) => {
+    await delay(500);
+    return repo.getById(id);
+  },
+  save: async (items: Inquiry[]) => {
+    await delay(500);
+    return repo.save(items);
+  },
 
   async update(id: string, updates: Partial<Inquiry>): Promise<Inquiry | null> {
+    await delay(500);
     const inquiries = await repo.getAll();
     const index = inquiries.findIndex((i) => i.id === id);
 

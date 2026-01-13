@@ -18,6 +18,7 @@ interface KanbanColumnProps<T extends { id: string }> {
   };
   renderCard: (item: T) => ReactNode;
   onCardClick?: (item: T) => void;
+  summary?: string;
 }
 
 export function KanbanColumn<T extends { id: string }>({
@@ -27,6 +28,7 @@ export function KanbanColumn<T extends { id: string }>({
   color,
   renderCard,
   onCardClick,
+  summary,
 }: KanbanColumnProps<T>) {
   const { setNodeRef } = useDroppable({
     id: id,
@@ -45,16 +47,23 @@ export function KanbanColumn<T extends { id: string }>({
             <h2 className={cn('font-semibold text-sm', color?.text)}>
               {title}
             </h2>
-            <span
-              className={cn(
-                'rounded-full px-2 py-0.5 text-xs font-medium',
-                color?.bg,
-                color?.text,
-              )}
-            >
-              {items.length}
-            </span>
+            <div className="flex flex-col items-end">
+              <span
+                className={cn(
+                  'rounded-full px-2 py-0.5 text-xs font-medium mb-1',
+                  color?.bg,
+                  color?.text,
+                )}
+              >
+                {items.length}
+              </span>
+            </div>
           </div>
+          {summary && (
+            <div className="text-xs font-semibold text-slate-500">
+              {summary}
+            </div>
+          )}
         </div>
       </header>
 

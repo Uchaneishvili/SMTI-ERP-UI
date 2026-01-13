@@ -32,6 +32,7 @@ export interface GenericKanbanBoardProps<T extends { id: string }> {
   renderOverlayCard?: (item: T) => ReactNode;
   onItemMove: (itemId: string, newColumnId: string, newIndex: number) => void;
   onCardClick?: (item: T) => void;
+  calculateSummary?: (items: T[]) => string;
 }
 
 export function GenericKanbanBoard<T extends { id: string }>({
@@ -42,6 +43,7 @@ export function GenericKanbanBoard<T extends { id: string }>({
   renderOverlayCard,
   onItemMove,
   onCardClick,
+  calculateSummary,
 }: GenericKanbanBoardProps<T>) {
   const {
     items: groupedItems,
@@ -86,6 +88,7 @@ export function GenericKanbanBoard<T extends { id: string }>({
             items={groupedItems[col.id] || []}
             renderCard={renderCard}
             onCardClick={onCardClick}
+            summary={calculateSummary?.(groupedItems[col.id] || [])}
           />
         ))}
       </div>

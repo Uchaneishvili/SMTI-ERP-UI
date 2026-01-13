@@ -152,6 +152,13 @@ export default function Home() {
             onItemMove={handleInquiryMove}
             onCardClick={setSelectedInquiry}
             renderCard={(inquiry) => <InquiryCard inquiry={inquiry} />}
+            calculateSummary={(items) => {
+              const total = items.reduce(
+                (sum, item) => sum + item.potentialValue,
+                0,
+              );
+              return `CHF ${total.toLocaleString('de-CH')}`;
+            }}
           />
         )}
       </main>
