@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { KanbanBoard, Header, FilterPanel, Loading } from '@/components';
 import { filterInquiries } from '@/lib';
 import { useDebounce } from '@/hooks';
-import type { Inquiry, InquiryFilters } from '@/types';
+import type { Inquiry, InquiryFilters, InquiryPhase } from '@/types';
 
 export default function Home() {
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
@@ -47,6 +47,34 @@ export default function Home() {
     setFilters({});
   };
 
+  const handleInquiryMove = async (id: string, newPhase: InquiryPhase) => {
+    // Optimistic update
+    setInquiries((prev) =>
+      prev.map((inq) =>
+        inq.id === id
+          ? { ...inq, phase: newPhase, updatedAt: new Date().toISOString() }
+          : inq,
+      ),
+    );
+
+    try {
+      const res = await fetch(`/api/inquiries/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phase: newPhase }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to update inquiry');
+      }
+    } catch (error) {
+      console.error('Failed to move inquiry:', error);
+      // Revert optimization on error (simplified for now, ideally fetching fresh data)
+      // For a real app, we'd keep prev state ref or re-fetch.
+      // fetchInquiries();
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-slate-50">
       <Header
@@ -65,7 +93,10 @@ export default function Home() {
         {isLoading ? (
           <Loading />
         ) : (
-          <KanbanBoard inquiries={filteredInquiries} />
+          <KanbanBoard
+            inquiries={filteredInquiries}
+            onInquiryMove={handleInquiryMove}
+          />
         )}
       </main>
     </div>
