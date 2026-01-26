@@ -35,20 +35,87 @@
       "order": 1
     },
     {
-      "id": "INQ-2026-0011",
-      "clientName": "Migros Group",
-      "contactPerson": "Laura Bauer",
-      "eventType": "Wedding",
-      "eventDate": "2026-02-14",
-      "guestCount": 200,
-      "potentialValue": 95000,
-      "phase": "completed",
+      "id": "INQ-2026-0007",
+      "clientName": "Nestle SA",
+      "contactPerson": "Christine Huber",
+      "eventType": "Conference",
+      "eventDate": "2026-02-15",
+      "guestCount": 180,
+      "potentialValue": 75000,
+      "phase": "new",
       "hotels": [
-        "The Dolder Grand"
+        "Grand Hotel Zurich",
+        "Hotel Schweizerhof"
       ],
-      "notes": "Executive wedding celebration, premium package",
-      "createdAt": "2025-11-10T11:00:00Z",
-      "updatedAt": "2026-01-02T16:30:00Z",
+      "notes": "Global marketing summit, simultaneous translation needed",
+      "createdAt": "2026-01-02T10:00:00Z",
+      "updatedAt": "2026-01-13T22:23:23.978Z",
+      "order": 0
+    },
+    {
+      "id": "INQ-2026-0001",
+      "clientName": "Novartis AG",
+      "contactPerson": "Anna Mueller",
+      "eventType": "Conference",
+      "eventDate": "2026-03-15",
+      "guestCount": 120,
+      "potentialValue": 48500,
+      "phase": "new",
+      "hotels": [],
+      "notes": "Client prefers city center location, needs AV equipment",
+      "createdAt": "2026-01-10T09:00:00Z",
+      "updatedAt": "2026-01-13T22:15:50.423Z",
+      "order": 1
+    },
+    {
+      "id": "INQ-2026-0006",
+      "clientName": "Lindt & Sprüngli",
+      "contactPerson": "Thomas Meier",
+      "eventType": "Corporate",
+      "eventDate": "2026-04-05",
+      "guestCount": 60,
+      "potentialValue": 28000,
+      "phase": "sent_to_hotels",
+      "hotels": [
+        "Hotel Storchen",
+        "Widder Hotel"
+      ],
+      "notes": "Board dinner, private dining room required",
+      "createdAt": "2026-01-06T13:45:00Z",
+      "updatedAt": "2026-01-13T22:21:26.464Z",
+      "order": 0
+    },
+    {
+      "id": "INQ-2026-0008",
+      "clientName": "ABB Ltd",
+      "contactPerson": "Michael Steiner",
+      "eventType": "Corporate",
+      "eventDate": "2026-03-01",
+      "guestCount": 45,
+      "potentialValue": 22000,
+      "phase": "sent_to_hotels",
+      "hotels": [
+        "Hotel Allegra",
+        "Renaissance Zurich"
+      ],
+      "notes": "Engineering workshop, technical setup required",
+      "createdAt": "2026-01-03T15:20:00Z",
+      "updatedAt": "2026-01-26T08:36:12.071Z",
+      "order": 1
+    },
+    {
+      "id": "INQ-2026-0003",
+      "clientName": "Credit Suisse",
+      "contactPerson": "Maria Weber",
+      "eventType": "Conference",
+      "eventDate": "2026-05-10",
+      "guestCount": 200,
+      "potentialValue": 85000,
+      "phase": "sent_to_hotels",
+      "hotels": [],
+      "notes": "Executive leadership summit, premium venue required",
+      "createdAt": "2026-01-12T10:15:00Z",
+      "updatedAt": "2026-01-26T08:36:15.061Z",
       "order": 2
     },
     {
@@ -101,91 +168,24 @@
       "notes": "Product launch event, exhibition space minimum 500m²",
       "createdAt": "2026-01-04T09:30:00Z",
       "updatedAt": "2026-01-13T22:15:43.857Z",
-      "order": 3
+      "order": 2
     },
     {
-      "id": "INQ-2026-0008",
-      "clientName": "ABB Ltd",
-      "contactPerson": "Michael Steiner",
-      "eventType": "Corporate",
-      "eventDate": "2026-03-01",
-      "guestCount": 45,
-      "potentialValue": 22000,
+      "id": "INQ-2026-0011",
+      "clientName": "Migros Group",
+      "contactPerson": "Laura Bauer",
+      "eventType": "Wedding",
+      "eventDate": "2026-02-14",
+      "guestCount": 200,
+      "potentialValue": 95000,
       "phase": "offers_received",
       "hotels": [
-        "Hotel Allegra",
-        "Renaissance Zurich"
+        "The Dolder Grand"
       ],
-      "notes": "Engineering workshop, technical setup required",
-      "createdAt": "2026-01-03T15:20:00Z",
-      "updatedAt": "2026-01-13T22:15:45.408Z",
-      "order": 4
-    },
-    {
-      "id": "INQ-2026-0007",
-      "clientName": "Nestle SA",
-      "contactPerson": "Christine Huber",
-      "eventType": "Conference",
-      "eventDate": "2026-02-15",
-      "guestCount": 180,
-      "potentialValue": 75000,
-      "phase": "new",
-      "hotels": [
-        "Grand Hotel Zurich",
-        "Hotel Schweizerhof"
-      ],
-      "notes": "Global marketing summit, simultaneous translation needed",
-      "createdAt": "2026-01-02T10:00:00Z",
-      "updatedAt": "2026-01-13T22:23:23.978Z",
-      "order": 0
-    },
-    {
-      "id": "INQ-2026-0001",
-      "clientName": "Novartis AG",
-      "contactPerson": "Anna Mueller",
-      "eventType": "Conference",
-      "eventDate": "2026-03-15",
-      "guestCount": 120,
-      "potentialValue": 48500,
-      "phase": "new",
-      "hotels": [],
-      "notes": "Client prefers city center location, needs AV equipment",
-      "createdAt": "2026-01-10T09:00:00Z",
-      "updatedAt": "2026-01-13T22:15:50.423Z",
-      "order": 1
-    },
-    {
-      "id": "INQ-2026-0006",
-      "clientName": "Lindt & Sprüngli",
-      "contactPerson": "Thomas Meier",
-      "eventType": "Corporate",
-      "eventDate": "2026-04-05",
-      "guestCount": 60,
-      "potentialValue": 28000,
-      "phase": "sent_to_hotels",
-      "hotels": [
-        "Hotel Storchen",
-        "Widder Hotel"
-      ],
-      "notes": "Board dinner, private dining room required",
-      "createdAt": "2026-01-06T13:45:00Z",
-      "updatedAt": "2026-01-13T22:21:26.464Z",
-      "order": 0
-    },
-    {
-      "id": "INQ-2026-0003",
-      "clientName": "Credit Suisse",
-      "contactPerson": "Maria Weber",
-      "eventType": "Conference",
-      "eventDate": "2026-05-10",
-      "guestCount": 200,
-      "potentialValue": 85000,
-      "phase": "sent_to_hotels",
-      "hotels": [],
-      "notes": "Executive leadership summit, premium venue required",
-      "createdAt": "2026-01-12T10:15:00Z",
-      "updatedAt": "2026-01-13T22:23:24.795Z",
-      "order": 1
+      "notes": "Executive wedding celebration, premium package",
+      "createdAt": "2025-11-10T11:00:00Z",
+      "updatedAt": "2026-01-26T08:36:23.910Z",
+      "order": 3
     }
   ]
 }
