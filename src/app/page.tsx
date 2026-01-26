@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
 import {
   Header,
   Loading,
@@ -49,6 +49,14 @@ const FILTER_CONFIG: FilterFieldConfig[] = [
 ];
 
 export default function Home() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <HomeContent />
+    </Suspense>
+  );
+}
+
+function HomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
