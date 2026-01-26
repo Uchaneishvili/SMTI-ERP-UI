@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   DragStartEvent,
   DragOverEvent,
@@ -6,6 +6,7 @@ import {
   defaultDropAnimationSideEffects,
   DropAnimation,
 } from '@dnd-kit/core';
+import { arrayMove } from '@dnd-kit/sortable';
 
 export const dropAnimation: DropAnimation = {
   sideEffects: defaultDropAnimationSideEffects({
@@ -15,7 +16,7 @@ export const dropAnimation: DropAnimation = {
   }),
 };
 
-export function useKanban<T extends { id: string }>(
+export function useKanban<T extends { id: string; order?: number }>(
   initialItems: T[],
   groupByKey: keyof T,
   columns: { id: string }[],
@@ -28,6 +29,9 @@ export function useKanban<T extends { id: string }>(
         const key = String(item[groupByKey]);
         if (groups[key]) groups[key].push(item);
       });
+      Object.keys(groups).forEach((key) => {
+        groups[key].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      });
       return groups;
     },
     [columns, groupByKey],
@@ -38,9 +42,24 @@ export function useKanban<T extends { id: string }>(
   );
   const [activeId, setActiveId] = useState<string | null>(null);
 
+  // Sync ref - updated inside setState to guarantee latest value
+  const itemsRef = useRef<Record<string, T[]>>(items);
+
   useEffect(() => {
-    setItems(getGrouped(initialItems));
+    const grouped = getGrouped(initialItems);
+    setItems(grouped);
+    itemsRef.current = grouped;
   }, [initialItems, getGrouped]);
+
+  const findContainer = useCallback(
+    (id: string, currentItems: Record<string, T[]>) => {
+      if (columns.some((col) => col.id === id)) return id;
+      return Object.keys(currentItems).find((key) =>
+        currentItems[key].some((i) => i.id === id),
+      );
+    },
+    [columns],
+  );
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -51,64 +70,74 @@ export function useKanban<T extends { id: string }>(
       const { active, over } = event;
       if (!over) return;
 
-      const activeId = active.id as string;
+      const activeItemId = active.id as string;
       const overId = over.id as string;
 
-      if (activeId === overId) return;
-
-      const findContainer = (id: string) => {
-        if (columns.some((col) => col.id === id)) return id;
-        return Object.keys(items).find((key) =>
-          items[key].some((i) => i.id === id),
-        );
-      };
-
-      const activeContainer = findContainer(activeId);
-      const overContainer = findContainer(overId);
-
-      if (
-        !activeContainer ||
-        !overContainer ||
-        activeContainer === overContainer
-      ) {
-        return;
-      }
+      if (activeItemId === overId) return;
 
       setItems((prev) => {
-        const activeItems = prev[activeContainer];
-        const overItems = prev[overContainer];
-        const activeIndex = activeItems.findIndex((i) => i.id === activeId);
-        const overIndex = overItems.findIndex((i) => i.id === overId);
+        const activeContainer = findContainer(activeItemId, prev);
+        const overContainer = findContainer(overId, prev);
 
-        let newIndex;
-        if (columns.some((col) => col.id === overId)) {
-          newIndex = overItems.length + 1;
-        } else {
-          const isBelowOverItem =
-            over &&
-            active.rect.current.translated &&
-            active.rect.current.translated.top >
-              over.rect.top + over.rect.height;
-
-          const modifier = isBelowOverItem ? 1 : 0;
-          newIndex =
-            overIndex >= 0 ? overIndex + modifier : overItems.length + 1;
+        if (!activeContainer || !overContainer) {
+          return prev;
         }
 
-        return {
+        // Same column reordering
+        if (activeContainer === overContainer) {
+          const activeIndex = prev[activeContainer].findIndex(
+            (i) => i.id === activeItemId,
+          );
+          const overIndex = prev[overContainer].findIndex(
+            (i) => i.id === overId,
+          );
+
+          if (activeIndex !== overIndex && activeIndex !== -1 && overIndex !== -1) {
+            const newState = {
+              ...prev,
+              [overContainer]: arrayMove(prev[overContainer], activeIndex, overIndex),
+            };
+            itemsRef.current = newState;
+            return newState;
+          }
+          return prev;
+        }
+
+        // Cross-column move
+        const activeItems = prev[activeContainer];
+        const overItems = prev[overContainer];
+        const activeIndex = activeItems.findIndex((i) => i.id === activeItemId);
+        const overIndex = overItems.findIndex((i) => i.id === overId);
+
+        if (activeIndex === -1) return prev;
+
+        let newIndex: number;
+        if (columns.some((col) => col.id === overId)) {
+          // Dropping on empty column
+          newIndex = overItems.length;
+        } else if (overIndex < 0) {
+          newIndex = overItems.length;
+        } else {
+          // Insert at the position of the over item
+          newIndex = overIndex;
+        }
+
+        const movedItem = { ...activeItems[activeIndex], [groupByKey]: overContainer };
+        const newOverItems = [...overItems];
+        newOverItems.splice(newIndex, 0, movedItem);
+
+        const newState = {
           ...prev,
-          [activeContainer]: [
-            ...prev[activeContainer].filter((item) => item.id !== activeId),
-          ],
-          [overContainer]: [
-            ...prev[overContainer].slice(0, newIndex),
-            { ...activeItems[activeIndex], [groupByKey]: overContainer },
-            ...prev[overContainer].slice(newIndex, prev[overContainer].length),
-          ],
+          [activeContainer]: prev[activeContainer].filter(
+            (item) => item.id !== activeItemId,
+          ),
+          [overContainer]: newOverItems,
         };
+        itemsRef.current = newState;
+        return newState;
       });
     },
-    [items, columns, groupByKey],
+    [columns, groupByKey, findContainer],
   );
 
   const handleDragEnd = useCallback(
@@ -116,45 +145,23 @@ export function useKanban<T extends { id: string }>(
       event: DragEndEvent,
       onMove: (id: string, newColId: string, newIndex: number) => void,
     ) => {
-      const { active, over } = event;
-      const activeId = active.id as string;
-      const overId = over ? (over.id as string) : null;
+      const { active } = event;
+      const activeItemId = active.id as string;
 
-      const findContainer = (id: string) => {
-        if (columns.some((col) => col.id === id)) return id;
-        return Object.keys(items).find((key) =>
-          items[key].some((i) => i.id === id),
-        );
-      };
-
-      const activeContainer = findContainer(activeId);
-      const overContainer = overId ? findContainer(overId) : null;
-
-      if (
-        activeContainer &&
-        overContainer &&
-        activeContainer === overContainer
-      ) {
-        const activeIndex = items[activeContainer].findIndex(
-          (i) => i.id === activeId,
-        );
-        const overIndex = items[overContainer].findIndex(
-          (i) => i.id === overId,
-        );
-
-        if (activeIndex !== overIndex) {
-          onMove(activeId, activeContainer, overIndex);
+      // Find the item's current position from the sync ref
+      const currentItems = itemsRef.current;
+      
+      for (const columnId of Object.keys(currentItems)) {
+        const index = currentItems[columnId].findIndex((i) => i.id === activeItemId);
+        if (index !== -1) {
+          onMove(activeItemId, columnId, index);
+          break;
         }
-      } else if (activeContainer && overContainer) {
-        const finalIndex = items[overContainer].findIndex(
-          (i) => i.id === activeId,
-        );
-        onMove(activeId, overContainer, finalIndex);
       }
 
       setActiveId(null);
     },
-    [items, columns],
+    [],
   );
 
   return {
